@@ -141,41 +141,44 @@ int main(int argc, char* argv[]) {
 
    /* Define block size */
    threads_per_block = 256;
-
+   cudaDeviceSynchronize();
    block_count = (n + threads_per_block - 1)/threads_per_block;
 	cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    
+   
 	cudaEventRecord(start,0);
 
    p2f<<<block_count, threads_per_block>>>(d_in, d_out, n);
 
-   cudaDeviceSynchronize();
-	cudaEventCreate(&stop);
+   //cudaDeviceSynchronize();
+	
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
-  
+      
   cudaEventElapsedTime(&elapsedTime, start,stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
  
   printf("Elapsed time himeshi's implementation: %f ms\n" ,elapsedTime);
-
-    cudaDeviceSynchronize();
+    
+    //cudaDeviceSynchronize();
 	cudaEventRecord(start,0);
 
    p2f_lookup<<<block_count, threads_per_block>>>(d_in, d_out, n);
 
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
   cudaEventElapsedTime(&elapsedTime, start,stop);
   printf("Elapsed time lookup constant mem: %f ms\n" ,elapsedTime);
   
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(start,0);
 
    p2f_lookup_shared_mem<<<block_count, threads_per_block>>>(d_in, d_out, n);
 
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
@@ -195,12 +198,12 @@ int main(int argc, char* argv[]) {
 
 	if(cudaBindTexture(NULL, &t_features, table_global, &chDesc0, n*sizeof(uint32_t)) != CUDA_SUCCESS)
         printf("Couldn't bind features array to texture!\n");
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
 	cudaEventRecord(start,0);
 
    p2f_lookup_texture<<<block_count, threads_per_block>>>(d_in, d_out, n);
 
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
@@ -208,24 +211,25 @@ int main(int argc, char* argv[]) {
   printf("Elapsed time texture lookup: %f ms\n" ,elapsedTime);
      FP_TYPE *  d_out_dummy ; 
     cudaMalloc(&d_out_dummy, n*sizeof(FP_TYPE));
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
 	cudaEventRecord(start,0);
 
    p2f_dummy_1op<<<block_count, threads_per_block>>>(d_out, d_out_dummy, n);
 
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
+    
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
   cudaEventElapsedTime(&elapsedTime, start,stop);
   printf("Elapsed time 1 MAC float : %f ms\n" ,elapsedTime);
  
-     cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
 	cudaEventRecord(start,0);
 
    p2f_dummy_coppy<<<block_count, threads_per_block>>>(d_out, d_out_dummy, n);
 
-   cudaDeviceSynchronize();
+   //cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
@@ -234,12 +238,13 @@ int main(int argc, char* argv[]) {
  
       POSIT_TYPE *  d_in_dummy ; 
     cudaMalloc(&d_in_dummy, n*sizeof(POSIT_TYPE));
-     cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
+    
 	cudaEventRecord(start,0);
 
    p2f_dummy_coppy_uint8<<<block_count, threads_per_block>>>(d_in, d_in_dummy, n);
 
-   cudaDeviceSynchronize();
+  // cudaDeviceSynchronize();
 	cudaEventRecord(stop,0);
 	cudaEventSynchronize(stop);
   cudaMemcpy(h_out, d_out, n*sizeof(FP_TYPE), cudaMemcpyDeviceToHost);
